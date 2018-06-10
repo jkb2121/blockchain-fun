@@ -147,16 +147,69 @@ def find_new_chains():
 #     blockchain = longest_chain
 
 
+
+# Apparently, Bitcoin uses a double hash and a merkle to calculate its Proof of Work
+def dhash(value):
+    return hasher.sha256(hasher.sha256(value.encode())).hexdigest()
+
+def merkle(a, b=0, c=0):
+    d1 = dhash(a)
+    d2 = dhash(b)
+    d3 = dhash(c)
+    d4 = dhash(c)  # a, b, c are 3. that's an odd number, so we take the c twice
+
+    d5 = dhash("{}{}".format(d1, d2))
+    d6 = dhash("{}{}".format(d3, d4))
+    d7 = dhash("{}{}".format(d5, d6))
+
+    return d7
+
+# Proof of Work function for this blockchain.  This one is kind of simple, just adding the nonce to the end of the
+# last proof of work and looking for a hash starting with 0000.  Not sure how this helps with the integrity of the
+# blockchain, so apparently, I'll need to do a little more research.
 def proof_of_work(last_proof):
+    nonce = 0
+
+    proof_of_work_hash = ""
+    while True:
+        tohash = "{}{}".format(last_proof, nonce)
+
+        proof_of_work_hash = hasher.sha512(tohash.encode()).hexdigest()
+
+        if not proof_of_work_hash.startswith('0000'):
+            print("No Match: Nonce: {}, Hash: {}".format(nonce, proof_of_work_hash))
+        else:
+            print("Success: Nonce: {}, Hash: {}".format(nonce, proof_of_work_hash))
+            break
+
+        nonce += 1
+
+    return proof_of_work_hash
+
+# This was the proof of work that came with SnakeCoin, which really falls apart after about 59 blocks.  The numbers get
+# way too big, so I tried a different Proof of Work function above.
+def proof_of_workx(last_proof):
     # Create a variable that we will use to find
-    # our next proof of work
-    incrementor = last_proof + 1
+    # our next proof of work.  Since it needs to be
+    # evenly divisible by the last_proof, i started it at 2x
+    # the last_proof, as these numbers are going to get really high quickly.
+
+    # Note: for the PoC mode of this, i think this is OK, but there's no way the calculation can be linear in real
+    # blockchains, can it?
+
+    #incrementor = last_proof + 1
+    incrementor = (last_proof * 2) + 1
+
     # Keep incrementing the incrementor until
     # it's equal to a number divisible by 9
     # and the proof of work of the previous
     # block in the chain
     while not (incrementor % 9 == 0 and incrementor % last_proof == 0):
         incrementor += 1
+
+        if incrementor % 25 == 0:
+            print("Mining.... Incrementor: {}".format(incrementor))
+
     # Once that number is found,
     # we can return it as a proof
     # of our work

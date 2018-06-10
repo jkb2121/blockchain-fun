@@ -1,0 +1,9 @@
+peckchain:
+  port: 5003
+  miner-name: "Miner 03"
+  miner-address:  "miner-03-45071e603e784abbd5e47310776f2dcb"
+  mining: True
+  peer_nodes:
+    - "localhost:5001"
+    - "localhost:5002"
+    - "localhost:5004"

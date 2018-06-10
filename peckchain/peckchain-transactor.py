@@ -2,38 +2,48 @@ import requests
 import pprint
 import json
 import random
+import time
 
-peck_trx = {
-    "item": "WPL90/09",
-    "bin": "A01A03"
-}
+for i in range(0, 500):
 
-peck_trx_string = json.dumps(peck_trx)
+    peck_trx = {
+        "item": "WPL90/09",
+        "bin": "A01A03",
+        "sequence": "{}{}".format('A', i)
+    }
 
-pprint.pprint(peck_trx)
+    peck_trx_string = json.dumps(peck_trx)
 
-headers = {"Content-type": "application/json"}
-url = ""
+    pprint.pprint(peck_trx)
 
-if random.random() < 0.5:
-    url = "http://localhost:5005"
-else:
-    url = "http://localhost:5006"
+    headers = {"Content-type": "application/json"}
+    url = ""
 
-urlstring = "{}/txion".format(url)
+    randomnumber = random.random()
 
-print("Attempting transaction to {}...".format(urlstring))
+    if randomnumber < 0.25:
+        url = "http://localhost:5001"
+    elif randomnumber < 0.50:
+        url = "http://localhost:5002"
+    elif randomnumber < 0.75:
+        url = "http://localhost:5003"
+    else:
+        url = "http://localhost:5004"
 
-r = requests.post(urlstring, headers=headers, data=peck_trx_string)
+    urlstring = "{}/txion".format(url)
 
-print("Results: {}".format(r.status_code))
-# pprint.pprint(r.json())
+    print("{}. Attempting transaction to {}...".format(i, urlstring))
 
-urlstring = "{}/mine".format(url)
-print("Mining it...")
-r = requests.get(urlstring, headers=headers)
+    r = requests.post(urlstring, headers=headers, data=peck_trx_string)
 
-print("Results: {}".format(r.status_code))
-#pprint.pprint(r.json())
+    print("Results: {}".format(r.status_code))
+    # pprint.pprint(r.json())
 
+    urlstring = "{}/mine".format(url)
+    print("Mining it...")
+    r = requests.get(urlstring, headers=headers)
 
+    print("Results: {}".format(r.status_code))
+    #pprint.pprint(r.json())
+
+    time.sleep(1)
