@@ -7,6 +7,9 @@ import datetime as date
 import pprint
 import sys
 import yaml
+import pickle
+import time
+from threading import Thread
 
 node = Flask(__name__)
 
@@ -79,7 +82,7 @@ this_nodes_transactions = []
 # other node in the network
 # so that we can communicate
 # with them
-peer_nodes = []
+# peer_nodes = []
 
 
 
@@ -96,11 +99,25 @@ def transaction():
     return "Transaction submission successful\n"
 
 
+@node.route('/check', methods=['GET'])
+def check_for_consensus():
+    global blockchain
+    print("Checking for Consensus...")
+    blockchain = consensus()
+    return 1
+
+
+@node.route('/rawblocks', methods=['GET'])
+def get_raw_blocks():
+
+    return pickle.dumps(blockchain)
+
+
 @node.route('/blocks', methods=['GET'])
 def get_blocks():
     blocklist = ""
     for block in blockchain:
-        print("Block: {}".format(block))
+        # print("Block: {}".format(block))
         block_index = str(block.index)
         block_timestamp = str(block.timestamp)
         block_data = str(block.data)
@@ -121,30 +138,54 @@ def get_blocks():
 def find_new_chains():
     # Get the blockchains of every
     # other node
+
+    print("Peer Nodes: {}".format(peer_nodes))
+
     other_chains = []
     for node_url in peer_nodes:
+        print("Checking node: {}".format(node_url))
         # Get their chains using a GET request
-        block = requests.get(node_url + "/blocks").content
+        block = requests.get("http://{}/rawblocks".format(node_url)).content
         # Convert the JSON object to a Python dictionary
-        block = json.loads(block)
+        block = pickle.loads(block)
         # Add it to our list
         other_chains.append(block)
     return other_chains
 
 
-# def consensus():
-#     # Get the blocks from other nodes
-#     other_chains = find_new_chains()
-#     # If our chain isn't longest,
-#     # then we store the longest chain
-#     longest_chain = blockchain
-#     for chain in other_chains:
-#         if len(longest_chain) < len(chain):
-#             longest_chain = chain
-#     # If the longest chain isn't ours,
-#     # then we stop mining and set
-#     # our chain to the longest one
-#     blockchain = longest_chain
+def consensus():
+    global blockchain
+
+    print("Starting Consensus()")
+    # Get the blocks from other nodes
+    other_chains = find_new_chains()
+
+    # If our chain isn't longest,
+    # then we store the longest chain
+
+    print(other_chains)
+
+    longest_chain = blockchain
+
+    for chain in other_chains:
+
+        print("My Blockchain Length: {}, other length: {}".format(len(longest_chain), len(chain)))
+
+        if len(longest_chain) < len(chain):
+            print("New Longer Blockchain Found, updating ours...")
+            print("My chain:")
+            pprint.pprint(longest_chain)
+
+            print("New chain:")
+            pprint.pprint(chain)
+
+            longest_chain = chain
+    # If the longest chain isn't ours,
+    # then we stop mining and set
+    # our chain to the longest one
+    blockchain = longest_chain
+    return longest_chain
+
 
 
 
@@ -177,7 +218,7 @@ def proof_of_work(last_proof):
         proof_of_work_hash = hasher.sha512(tohash.encode()).hexdigest()
 
         if not proof_of_work_hash.startswith('0000'):
-            print("No Match: Nonce: {}, Hash: {}".format(nonce, proof_of_work_hash))
+            '''print("No Match: Nonce: {}, Hash: {}".format(nonce, proof_of_work_hash))'''
         else:
             print("Success: Nonce: {}, Hash: {}".format(nonce, proof_of_work_hash))
             break
@@ -218,6 +259,9 @@ def proof_of_workx(last_proof):
 
 @node.route('/mine', methods=['GET'])
 def mine():
+    global blockchain
+    blockchain = consensus()
+
     # Get the last proof of work
     last_block = blockchain[len(blockchain) - 1]
     last_proof = last_block.data['proof-of-work']

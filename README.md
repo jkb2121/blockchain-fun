@@ -9,8 +9,16 @@ Here's what I've done so far:
 * Added yaml file support to read my config files
 * Fixed a few little bugs in the list blocks code
 * Made a Transactor who is sending updates to the blockchain
+* 6/9: OK with the commits on 6/9/2018, I started tossing the SnakeCoin stuff out the window and started going my own way reading different blockchain resources.
+* 6/10: Replaced the SnakeCoin (divisible by last PoW and 9) with a "next hash starting with 0000"
+* 6/10: Hooked up a rudimentary consensus process (a "mine" operation checks for consensus first)
+* 6/10: Made the transactor trigger a consensus check from time to time.
 
 TODO:
+* Need a better PoW calculation function
+* Need to Create different transactions and then do an integrity check
+* Query the blockchain for some type of transaction information (e.g. how many coins does each miner own?)
+* Simulate a rogue agent adding his own stuff to the chain
 * Instructions on how to run it and show how it works
 * Understand the part about mining and then getting a "coin", which is leftover from the SnakeCoin demo stuff.  In this blockchain example, you don't need to get a coin, so maybe that goes away.
 * Make some kind of timer check to Mine every so often to add new things to the blockchain

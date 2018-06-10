@@ -4,7 +4,7 @@ import json
 import random
 import time
 
-for i in range(0, 500):
+for i in range(0, 25):
 
     peck_trx = {
         "item": "WPL90/09",
@@ -47,3 +47,8 @@ for i in range(0, 500):
     #pprint.pprint(r.json())
 
     time.sleep(1)
+
+    for url in ["http://localhost:5001", "http://localhost:5002", "http://localhost:5003", "http://localhost:5004"]:
+        requests.get("{}/check".format(url))
+
+
